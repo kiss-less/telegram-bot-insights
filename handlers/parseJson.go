@@ -2,24 +2,24 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
 )
 
-type ParsedUsers struct {
-	ParsedUsers []ParsedUser
+type ParsedJsons struct {
+	ParsedJsons []ParsedJson
 }
 
-type ParsedUser struct {
+type ParsedJson struct {
 	BotID      int
 	ChatIDs    []string
 	Usernames  []string
 	Timestamps []time.Time
 }
 
-func parseJSONFile(filename string, dateFormat string, regex string) (int, []string, []string, []time.Time, error) {
+func parseJSONFile(filename string, dateFormat string, regex string, debug bool) (int, []string, []string, []time.Time, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return 0, []string{}, []string{}, []time.Time{}, err
@@ -30,7 +30,7 @@ func parseJSONFile(filename string, dateFormat string, regex string) (int, []str
 		return 0, []string{}, []string{}, []time.Time{}, err
 	}
 
-	botID, chatIDs, usernames, timestamps, err := messageArray.ExtractData(dateFormat, regex)
+	botID, chatIDs, usernames, timestamps, err := messageArray.ExtractData(dateFormat, regex, debug)
 	if err != nil {
 		return 0, []string{}, []string{}, []time.Time{}, err
 	}
@@ -38,33 +38,45 @@ func parseJSONFile(filename string, dateFormat string, regex string) (int, []str
 	return botID, chatIDs, usernames, timestamps, nil
 }
 
-func ProcessJSONFilesInDirectory(directoryPath string, dateFormat string, regex string) (ParsedUsers, error) {
-	ParsedUsers := ParsedUsers{}
+func ProcessJSONFilesInDirectory(args Arguments) (ParsedJsons, error) {
+	directoryPath := args.ParseDirectory
+	dateFormat := args.DateFormat
+	regex := args.Regex
+	debug := args.Debug
+
+	ParsedJsons := ParsedJsons{}
 	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".json" {
-			fmt.Printf("Processing %v\n", path)
-			if botID, chatIDs, usernames, timestamps, err := parseJSONFile(path, dateFormat, regex); err != nil {
-				fmt.Printf("Error parsing JSON file %s: %v\n", path, err)
+			if args.Debug {
+				log.Printf("Started Processing %v\n", path)
+			}
+			if botID, chatIDs, usernames, timestamps, err := parseJSONFile(path, dateFormat, regex, debug); err != nil {
+				log.Printf("Error parsing JSON file %s: %v\n", path, err)
 			} else {
-				ParsedUser := ParsedUser{
+				ParsedJson := ParsedJson{
 					BotID:      botID,
 					ChatIDs:    chatIDs,
 					Usernames:  usernames,
 					Timestamps: timestamps,
 				}
 
-				ParsedUsers.ParsedUsers = append(ParsedUsers.ParsedUsers, ParsedUser)
+				ParsedJsons.ParsedJsons = append(ParsedJsons.ParsedJsons, ParsedJson)
 			}
 		}
+
+		if args.Debug {
+			log.Printf("Finished Processing %v\n", path)
+		}
+
 		return nil
 	})
 
 	if err != nil {
-		return ParsedUsers, err
+		return ParsedJsons, err
 	}
 
-	return ParsedUsers, nil
+	return ParsedJsons, nil
 }

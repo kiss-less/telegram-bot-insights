@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 )
@@ -24,13 +25,23 @@ type Message struct {
 	} `json:"text_entities"`
 }
 
-func (ma *MessageArray) ExtractData(dateFormat string, regex string) (int, []string, []string, []time.Time, error) {
+func (ma *MessageArray) ExtractData(dateFormat string, regex string, debug bool) (int, []string, []string, []time.Time, error) {
 	var chatIDs []string
 	var usernames []string
 	var timestamps []time.Time
 
+	if debug {
+		log.Printf("Total number of messages to process: %v", len(ma.Messages))
+	}
+	step := 10
 	for i, message := range ma.Messages {
-		fmt.Printf("Processing message #%v\n", i)
+		if debug {
+			pct := percentCompleted(i, len(ma.Messages))
+			if pct > 0 && pct%step == 0 {
+				log.Printf("%v%% Completed. Processing %v out of %v", pct, i+1, len(ma.Messages))
+				step += 10
+			}
+		}
 		if message.Type == "message" {
 			chatID, username, timestamp, err := extractChatIDUsernameAndTimestampFromMessage(message, dateFormat, regex)
 			if err == nil {
@@ -41,6 +52,10 @@ func (ma *MessageArray) ExtractData(dateFormat string, regex string) (int, []str
 				}
 			}
 		}
+	}
+
+	if debug {
+		log.Print("100% Completed")
 	}
 
 	return ma.BotID, chatIDs, usernames, timestamps, nil
@@ -86,4 +101,8 @@ func containsValue(slice []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func percentCompleted(current int, total int) int {
+	return int(float64(current) / float64(total) * 100)
 }
