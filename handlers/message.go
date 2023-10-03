@@ -8,9 +8,8 @@ import (
 )
 
 type MessageArray struct {
-	BotID      int       `json:"id"`
-	Messages   []Message `json:"messages"`
-	DateFormat string    `json:"-"`
+	BotID    int       `json:"id"`
+	Messages []Message `json:"messages"`
 }
 
 type Message struct {
