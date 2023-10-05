@@ -14,25 +14,25 @@ type ParsedJsons struct {
 
 type ParsedJson struct {
 	BotID      int
-	ChatIDs    []string
+	ChatIDs    []int
 	Usernames  []string
 	Timestamps []time.Time
 }
 
-func parseJSONFile(filename string, dateFormat string, regex string, debug bool) (int, []string, []string, []time.Time, error) {
+func parseJSONFile(filename string, dateFormat string, regex string, debug bool) (int, []int, []string, []time.Time, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return 0, []string{}, []string{}, []time.Time{}, err
+		return 0, []int{}, []string{}, []time.Time{}, err
 	}
 
 	var messageArray MessageArray
 	if err := json.Unmarshal(data, &messageArray); err != nil {
-		return 0, []string{}, []string{}, []time.Time{}, err
+		return 0, []int{}, []string{}, []time.Time{}, err
 	}
 
 	botID, chatIDs, usernames, timestamps, err := messageArray.ExtractData(dateFormat, regex, debug)
 	if err != nil {
-		return 0, []string{}, []string{}, []time.Time{}, err
+		return 0, []int{}, []string{}, []time.Time{}, err
 	}
 
 	return botID, chatIDs, usernames, timestamps, nil

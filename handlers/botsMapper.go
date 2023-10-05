@@ -3,11 +3,12 @@ package handlers
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type BotsKeysMapping struct {
-	ID     string
+	ID     int
 	APIKey string
 }
 
@@ -28,7 +29,12 @@ func CreateBotsKeysMapping(args Arguments) ([]BotsKeysMapping, error) {
 	for _, pair := range keyValuePairs {
 		parts := strings.SplitN(pair, ":", 2)
 		if len(parts) == 2 {
-			id := parts[0]
+			id, err := strconv.Atoi(parts[0])
+			if err != nil {
+				err := fmt.Errorf("issue with converting %v to int", parts[0])
+
+				return nil, err
+			}
 			apiKey := parts[1]
 			mapping := BotsKeysMapping{
 				ID:     id,

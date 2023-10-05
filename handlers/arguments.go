@@ -15,7 +15,7 @@ type Arguments struct {
 }
 
 func ParseArgs(defaultArgs Arguments) Arguments {
-	flag.BoolVar(&defaultArgs.Parse, "parse", defaultArgs.Parse, "Parse Json files")
+	flag.BoolVar(&defaultArgs.Parse, "parse", defaultArgs.Parse, "Parse Json files and write result to DB")
 	flag.BoolVar(&defaultArgs.Debug, "debug", defaultArgs.Debug, "Verbose output")
 	parseDirPtr := flag.String("dir", defaultArgs.ParseDirectory, "Should be passed if parse is true")
 	customDateFormatPtr := flag.String("custom-date-fmt", defaultArgs.DateFormat, "Custom date format")

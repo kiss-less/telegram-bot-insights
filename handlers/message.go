@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -24,8 +25,8 @@ type Message struct {
 	} `json:"text_entities"`
 }
 
-func (ma *MessageArray) ExtractData(dateFormat string, regex string, debug bool) (int, []string, []string, []time.Time, error) {
-	var chatIDs []string
+func (ma *MessageArray) ExtractData(dateFormat string, regex string, debug bool) (int, []int, []string, []time.Time, error) {
+	var chatIDs []int
 	var usernames []string
 	var timestamps []time.Time
 
@@ -42,8 +43,12 @@ func (ma *MessageArray) ExtractData(dateFormat string, regex string, debug bool)
 			}
 		}
 		if message.Type == "message" {
-			chatID, username, timestamp, err := extractChatIDUsernameAndTimestampFromMessage(message, dateFormat, regex)
+			chatIDStr, username, timestamp, err := extractChatIDUsernameAndTimestampFromMessage(message, dateFormat, regex)
 			if err == nil {
+				chatID, err := strconv.Atoi(chatIDStr)
+				if err != nil {
+					log.Fatal("Error converting ChatId %v to Int: %v", chatIDStr, err)
+				}
 				if !containsValue(chatIDs, chatID) {
 					chatIDs = append(chatIDs, chatID)
 					usernames = append(usernames, username)
@@ -93,7 +98,7 @@ func extractChatIDUsernameAndTimestampFromMessage(message Message, dateFormat st
 	return chatID, username, parsedTimestamp, nil
 }
 
-func containsValue(slice []string, target string) bool {
+func containsValue(slice []int, target int) bool {
 	for _, element := range slice {
 		if element == target {
 			return true

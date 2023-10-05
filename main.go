@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
+	"telegram-bot-insights/database"
 	"telegram-bot-insights/handlers"
 )
 
@@ -20,16 +20,55 @@ func main() {
 	parsedArgs := handlers.ParseArgs(defaultArgs)
 
 	if parsedArgs.Parse {
+		db, err := database.InitDB("./tg-bot-insights.db", parsedArgs.Debug)
+		if err != nil {
+			log.Fatal("Error Initializing DB: %v\n", err)
+		}
+		defer db.Close()
+
 		parsedJsons, err := handlers.ProcessJSONFilesInDirectory(parsedArgs)
 		if err != nil {
 			log.Fatal("Error processing JSON files: %v\n", err)
+		} else {
+			for _, item := range parsedJsons.ParsedJsons {
+				for i, id := range item.ChatIDs {
+					userExists, err := database.UserExists(db, id)
+					if err != nil {
+						log.Fatalf("Error checking if user exists: %v", err)
+					}
+
+					errAssoc := database.AssociateBotWithUser(db, item.BotID, id)
+					if errAssoc != nil && parsedArgs.Debug {
+						log.Println(errAssoc)
+					}
+					if !userExists {
+						err := database.CreateUser(db, id, item.Usernames[i], item.Timestamps[i].Format(parsedArgs.DateFormat))
+						if err != nil {
+							log.Fatalf("Error creating user with Id %v: %v", id, err)
+						}
+					}
+				}
+			}
 		}
-		fmt.Printf("%v", parsedJsons)
 
 		mappings, err := handlers.CreateBotsKeysMapping(parsedArgs)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("There was an error during Bots API Keys mapping: %v\n", err)
+			log.Println("Skipping this step")
+		} else {
+			for _, item := range mappings {
+				botExists, err := database.BotExists(db, item.ID)
+				if err != nil {
+					log.Fatalf("Error checking if bot exists: %v", err)
+				}
+
+				if !botExists {
+					err := database.CreateBot(db, item.ID, item.APIKey, "", "")
+					if err != nil {
+						log.Fatalf("Error creating bot with Id %v: %v", item.ID, err)
+					}
+				}
+			}
 		}
-		fmt.Printf("%v", mappings)
 	}
 }
