@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-type ParsedJsons struct {
-	ParsedJsons []ParsedJson
-}
-
 type ParsedJson struct {
 	BotID      int
 	ChatIDs    []int
@@ -38,13 +34,13 @@ func parseJSONFile(filename string, dateFormat string, regex string, debug bool)
 	return botID, chatIDs, usernames, timestamps, nil
 }
 
-func ProcessJSONFilesInDirectory(args Arguments) (ParsedJsons, error) {
+func ProcessJSONFilesInDirectory(args Arguments) ([]ParsedJson, error) {
 	directoryPath := args.ParseDirectory
 	dateFormat := args.DateFormat
 	regex := args.Regex
 	debug := args.Debug
 
-	ParsedJsons := ParsedJsons{}
+	var ParsedJsons []ParsedJson
 	err := filepath.Walk(directoryPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -63,7 +59,7 @@ func ProcessJSONFilesInDirectory(args Arguments) (ParsedJsons, error) {
 					Timestamps: timestamps,
 				}
 
-				ParsedJsons.ParsedJsons = append(ParsedJsons.ParsedJsons, ParsedJson)
+				ParsedJsons = append(ParsedJsons, ParsedJson)
 			}
 		}
 

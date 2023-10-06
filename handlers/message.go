@@ -36,7 +36,7 @@ func (ma *MessageArray) ExtractData(dateFormat string, regex string, debug bool)
 	step := 10
 	for i, message := range ma.Messages {
 		if debug {
-			pct := percentCompleted(i, len(ma.Messages))
+			pct := PercentCompleted(i, len(ma.Messages))
 			if pct > 0 && pct%step == 0 {
 				log.Printf("%v%% Completed. Processing %v out of %v", pct, i+1, len(ma.Messages))
 				step += 10
@@ -107,6 +107,6 @@ func containsValue(slice []int, target int) bool {
 	return false
 }
 
-func percentCompleted(current int, total int) int {
+func PercentCompleted(current int, total int) int {
 	return int(float64(current) / float64(total) * 100)
 }

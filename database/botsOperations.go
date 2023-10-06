@@ -58,8 +58,8 @@ func AssociateBotWithUser(db *sql.DB, botID, userID int) error {
 	}
 
 	if count == 0 {
-		query := "INSERT INTO BotsUsers (bot_id, user_id) VALUES (?, ?)"
-		_, err := db.Exec(query, botID, userID)
+		query := "INSERT INTO BotsUsers (bot_id, user_id) VALUES (?, ?, ?)"
+		_, err := db.Exec(query, botID, userID, true)
 		if err != nil {
 			return err
 		}

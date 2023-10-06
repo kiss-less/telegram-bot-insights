@@ -55,6 +55,7 @@ func InitDB(dbPath string, debugFlag bool) (*sql.DB, error) {
 			bot_user_id INTEGER PRIMARY KEY,
 			bot_id INTEGER,
 			user_id INTEGER,
+			is_active BOOLEAN,
 			FOREIGN KEY (bot_id) REFERENCES Bots(bot_id),
 			FOREIGN KEY (user_id) REFERENCES Users(user_id)
 		)
@@ -85,7 +86,8 @@ func InitDB(dbPath string, debugFlag bool) (*sql.DB, error) {
 			bot_id INTEGER,
 			user_id INTEGER,
 			message_text_id INTEGER,
-			message_result TEXT,
+			http_status INTEGER,
+			send_time TIMESTAMP,
 			FOREIGN KEY (bot_id) REFERENCES Bots(bot_id),
 			FOREIGN KEY (user_id) REFERENCES Users(user_id)
 			FOREIGN KEY (message_text_id) REFERENCES MessagesText(message_text_id)
