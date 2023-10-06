@@ -9,7 +9,7 @@ import (
 
 func main() {
 	defaultArgs := handlers.Arguments{
-		true,                          // Parse flag
+		false,                         // Parse flag
 		false,                         // Debug flag
 		"./bots_history",              // ParseDirectory flag Should contain path of the directory with Json files
 		"2006-01-02T15:04:05",         // DateFormat flag to parse timestamp
