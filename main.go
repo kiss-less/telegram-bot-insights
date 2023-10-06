@@ -10,16 +10,18 @@ import (
 
 func main() {
 	defaultArgs := handlers.Arguments{
+		false,                         // html-report
 		false,                         // parse
-		true,                          // debug
+		false,                         // debug
 		false,                         // send-msg-to-user
 		false,                         // send-msg-to-all-users-of-bot
-		true,                          // send-once
-		1,                             // msg-id
+		false,                         // send-once
+		0,                             // msg-id
 		0,                             // user-id
 		0,                             // bot-id
 		"",                            // create-msg
-		"./bots_history",              // dir
+		"./tg-bot-insights.db",        //db-path
+		"./bots_history",              // parse-dir
 		"2006-01-02T15:04:05",         // custom-date-fmt
 		`(?i)(?:Id|chat_id):\s+(\d+)`, // custom-regex
 		"BOTS_API_KEYS",               // custom-env-var
@@ -27,11 +29,15 @@ func main() {
 
 	parsedArgs := handlers.ParseArgs(defaultArgs)
 
-	db, err := database.InitDB("./tg-bot-insights.db", parsedArgs.Debug)
+	db, err := database.InitDB(parsedArgs.DBPath, parsedArgs.Debug)
 	if err != nil {
 		log.Fatal("Error Initializing DB: %v\n", err)
 	}
 	defer db.Close()
+
+	if parsedArgs.HtmlReport {
+		handlers.StartHTMLReportServer(db, parsedArgs.MessageID, parsedArgs.BotID)
+	}
 
 	if parsedArgs.Parse {
 		if parsedArgs.Debug {
@@ -171,12 +177,12 @@ func main() {
 				}
 			}
 			if parsedArgs.SendOnce {
-				date, err := database.MessageWasSentEarlier(db, bot.ID, user.ID, parsedArgs.MessageID, parsedArgs.DateFormat)
+				messageAlreadySent, err := database.MessageWasSentEarlier(db, bot.ID, user.ID, parsedArgs.MessageID)
 				if err != nil {
 					log.Fatalf("Error checking if message was sent: %v", err)
 				}
 
-				if date != "" {
+				if messageAlreadySent {
 					skip = true
 				}
 			}
@@ -185,7 +191,6 @@ func main() {
 			if err != nil {
 				log.Fatalf("Error checking if user is active: %v", err)
 			}
-
 			if !skip && userIsActive {
 				res, err := telegramAPI.SendMessageToUser(user.ID, bot.ID, bot.APIKey, message, parsedArgs.Debug)
 				if err != nil {

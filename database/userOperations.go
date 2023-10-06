@@ -48,7 +48,7 @@ func UserExists(db *sql.DB, id int) (bool, error) {
 }
 
 func GetUsersByBotID(db *sql.DB, botID int) ([]User, error) {
-	query := "SELECT user_id, name, timestamp FROM BotsUsers WHERE bot_id = ?"
+	query := "SELECT user_id, name, timestamp FROM Users WHERE user_id IN (SELECT user_id FROM BotsUsers WHERE bot_id = ?)"
 
 	rows, err := db.Query(query, botID)
 	if err != nil {
@@ -91,4 +91,14 @@ func UserIsActive(db *sql.DB, userID int, botID int) (bool, error) {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func TotalNumberOfActiveUsersPerBot(db *sql.DB, botID int) (int, error) {
+	query := "SELECT COUNT(*) FROM BotsUsers WHERE bot_id = ? AND is_active = 1"
+	var count int
+	err := db.QueryRow(query, botID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

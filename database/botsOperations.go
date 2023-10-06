@@ -15,11 +15,11 @@ type Bot struct {
 }
 
 func GetBotByID(db *sql.DB, id int) (*Bot, error) {
-	query := "SELECT bot_id, api_key, name, description FROM Bots WHERE bot_id = ?"
+	query := "SELECT bot_id, api_key, name FROM Bots WHERE bot_id = ?"
 	row := db.QueryRow(query, id)
 
 	var bot Bot
-	err := row.Scan(&bot.ID, &bot.APIKey, &bot.Name, &bot.Description)
+	err := row.Scan(&bot.ID, &bot.APIKey, &bot.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -58,7 +58,7 @@ func AssociateBotWithUser(db *sql.DB, botID, userID int) error {
 	}
 
 	if count == 0 {
-		query := "INSERT INTO BotsUsers (bot_id, user_id) VALUES (?, ?, ?)"
+		query := "INSERT INTO BotsUsers (bot_id, user_id, is_active) VALUES (?, ?, ?)"
 		_, err := db.Exec(query, botID, userID, true)
 		if err != nil {
 			return err

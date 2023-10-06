@@ -6,6 +6,7 @@ import (
 )
 
 type Arguments struct {
+	HtmlReport                 bool
 	Parse                      bool
 	Debug                      bool
 	SendMessageToUser          bool
@@ -15,6 +16,7 @@ type Arguments struct {
 	UserID                     int
 	BotID                      int
 	CreateMessage              string
+	DBPath                     string
 	ParseDirectory             string
 	DateFormat                 string
 	Regex                      string
@@ -22,6 +24,7 @@ type Arguments struct {
 }
 
 func ParseArgs(defaultArgs Arguments) Arguments {
+	flag.BoolVar(&defaultArgs.HtmlReport, "html-report", defaultArgs.HtmlReport, "Create HTML report of the existing runs. Accessible via localhost:8080/report")
 	flag.BoolVar(&defaultArgs.Parse, "parse", defaultArgs.Parse, "Parse Json files and write result to DB")
 	flag.BoolVar(&defaultArgs.Debug, "debug", defaultArgs.Debug, "Verbose output")
 	flag.BoolVar(&defaultArgs.SendMessageToUser, "send-msg-to-user", defaultArgs.SendMessageToUser, "Send a message to the user (Specify msg-id, user-id and bot-id)")
@@ -31,7 +34,8 @@ func ParseArgs(defaultArgs Arguments) Arguments {
 	userIDPtr := flag.Int("user-id", 0, "ID Of the user to send the message to")
 	botIDPtr := flag.Int("bot-id", 0, "ID Of the bot")
 	createMessagePtr := flag.String("create-msg", defaultArgs.CreateMessage, "Should contain message text if passed")
-	parseDirPtr := flag.String("dir", defaultArgs.ParseDirectory, "Should be passed if parse is true")
+	dbPathPtr := flag.String("db-path", defaultArgs.DBPath, "Should contain a path + filename of the DB to be initialized or used")
+	parseDirPtr := flag.String("parse-dir", defaultArgs.ParseDirectory, "Should be passed if parse is true")
 	customDateFormatPtr := flag.String("custom-date-fmt", defaultArgs.DateFormat, "Custom date format")
 	customRegexPtr := flag.String("custom-regex", defaultArgs.Regex, "Custom regex to parse chat_id")
 	customEnvVarPtr := flag.String("custom-env-var", defaultArgs.BotsApiEnvVar, "Custom Env Var")
@@ -41,6 +45,7 @@ func ParseArgs(defaultArgs Arguments) Arguments {
 	userID := *userIDPtr
 	botID := *botIDPtr
 	createMessage := *createMessagePtr
+	dbPath := *dbPathPtr
 	parseDir := *parseDirPtr
 	customDateFormat := *customDateFormatPtr
 	customRegex := *customRegexPtr
@@ -62,6 +67,10 @@ func ParseArgs(defaultArgs Arguments) Arguments {
 
 	if botID != 0 {
 		defaultArgs.BotID = botID
+	}
+
+	if dbPath != "" {
+		defaultArgs.DBPath = dbPath
 	}
 
 	if createMessage != "" {
