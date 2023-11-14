@@ -25,7 +25,7 @@ func SendMessageToUser(userId int, botID int, apiKey string, text string, debugF
 			if err != nil {
 				return resp.StatusCode, err
 			}
-			log.Printf("Result: %v", body)
+			log.Printf("Result: %v", string(body))
 		}
 	}
 	defer resp.Body.Close()

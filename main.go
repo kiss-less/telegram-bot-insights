@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"telegram-bot-insights/database"
 	"telegram-bot-insights/handlers"
@@ -193,6 +194,7 @@ func main() {
 			}
 			if !skip && userIsActive {
 				res, err := telegramAPI.SendMessageToUser(user.ID, bot.ID, bot.APIKey, message, parsedArgs.Debug)
+				time.Sleep(500 * time.Millisecond)
 				if err != nil {
 					log.Fatalf("Error sending message to User %v: %v", user.ID, err)
 				}
